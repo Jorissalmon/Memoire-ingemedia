@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soutenance de Mémoire - L'IA dans le Journalisme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --dark-blue: #002D62;
+            --light-blue: #00A9E0;
+            --pink: #E6007E;
+            --text-primary: #111827;
+            --text-secondary: #374151;
+            --bg-light: #F9FAFB;
+            --bg-white: #FFFFFF;
+            --border-color: #E5E7EB;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+        #presentation-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .slide-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--bg-white);
+        }
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 5rem 4rem;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 1;
+        }
+        .slide:focus-visible {
+            outline: 3px solid var(--light-blue);
+            outline-offset: -6px;
+            border-radius: 8px;
+        }
+        .slide-content {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .title-main {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 800;
+            color: var(--dark-blue);
+            line-height: 1.2;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .title-sub {
+            font-size: clamp(2.2rem, 4vw, 3.2rem);
+            font-weight: 700;
+            color: var(--dark-blue);
+            line-height: 1.2;
+            letter-spacing: -0.04em;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .title-section {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 0.75rem;
+        }
+        .title-highlight { color: var(--pink); }
+        .card {
+            background-color: var(--bg-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); }
+        blockquote {
+            border-left: 4px solid var(--pink);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .slide-header, .slide-footer-wrapper {
+            position: absolute;
+            left: 2rem;
+            right: 2rem;
+            z-index: 10;
+        }
+        .slide-header { top: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { height: 40px; width: auto; }
+        .slide-footer-wrapper { bottom: 1.5rem; }
+        .nav-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+        .nav-button { background-color: var(--dark-blue); color: white; border-radius: 9999px; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(0, 45, 98, 0.25); border: none; cursor: pointer; }
+        .nav-button:hover:not(:disabled) { background-color: var(--light-blue); transform: scale(1.1); }
+        .nav-button:disabled { background-color: #9CA3AF; cursor: not-allowed; opacity: 0.6; }
+        .slide-counter { color: var(--text-secondary); font-size: 0.875rem; background-color: #fff; padding: 0.25rem 0.75rem; border-radius: 9999px; border: 1px solid var(--border-color); }
+        .progress-bar-container { width: 250px; height: 8px; background-color: var(--border-color); border-radius: 4px; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: var(--pink); width: 0; transition: width 0.5s ease; }
+
+        @media (max-width: 768px) {
+            .slide { padding: 5rem 1.5rem; }
+            .slide-footer-wrapper, .slide-header { left: 1rem; right: 1rem; }
+            .progress-bar-container { display: none; }
+        }
+
+        .text-pink {
+            color: var(--pink); /* Applique la couleur rose définie --pink: #E6007E; */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="presentation-wrapper">
+        <div class="slide-container">
+            
+            <div class="slide active" role="group" aria-roledescription="slide" tabindex="-1">
+                <header class="slide-header">
+                    <img src="./logo-ingemedia.jpg" alt="Logo Université" class="logo">
+                </header>
+                <div class="slide-content text-center">
+                    <h1 class="title-main">
+                        L'intégration de l'<span class="text-pink">intelligence artificielle générative</span> dans les <span class="text-pink">médias numériques</span> <span class="text-pink">dévalorise-t-elle la perception du contenu journalistique</span> aux yeux des lecteurs ?
+                    </h1>
+                    <div class="mt-12">
+                        <p class="text-2xl font-bold text-dark-blue">Joris Salmon</p>
+                        <p class="text-lg text-gray-600">Sous la direction de Alaric Tabariès</p>
+                        <p class="text-md text-gray-500 mt-4 font-semibold">Date de soutenance : 27 juin 2025</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                 <div class="slide-content">
+                    <h2 class="title-sub">Contexte : La <span class="title-highlight">Tension Constitutive</span> de l'IA dans les Médias</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <p class="text-lg text-gray-700">Depuis fin 2022, l'IA générative a explosé, créant un décalage entre la maturité de la technologie et la maturité de la réflexion stratégique et éthique dans les rédactions.</p>
+                            <p class="text-lg text-gray-700">Mon mémoire analyse ce que j'appelle une <strong class="font-semibold text-dark-blue">tension constitutive</strong>, un nœud gordien où quatre pôles sont inextricablement liés.</p>
+                             <blockquote class="!ml-0 !pl-4">
+                                Ma problématique s'inscrit au cœur de cette tension : comment cette intégration technologique impacte-t-elle la <strong class="font-semibold">valeur perçue</strong> du journalisme ?
+                            </blockquote>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="card"><div class="flex items-center gap-4"><i data-lucide="cpu" class="w-10 h-10 text-pink"></i><div><h4 class="title-section !mb-0">Innovation Technique</h4><p class="text-gray-600">Puissance et accessibilité sans précédent des outils (LLM).</p></div></div></div>
+                            <div class="card"><div class="flex items-center gap-4"><i data-lucide="user-cog" class="w-10 h-10 text-pink"></i><div><h4 class="title-section !mb-0">Mutation Professionnelle</h4><p class="text-gray-600">Transformation du rôle et des compétences du journaliste.</p></div></div></div>
+                            <div class="card"><div class="flex items-center gap-4"><i data-lucide="users" class="w-10 h-10 text-pink"></i><div><h4 class="title-section !mb-0">Réception Publique</h4><p class="text-gray-600">Confiance, interprétation et perception par les lecteurs.</p></div></div></div>
+                            <div class="card"><div class="flex items-center gap-4"><i data-lucide="scale" class="w-10 h-10 text-pink"></i><div><h4 class="title-section !mb-0">Défis Éthiques</h4><p class="text-gray-600">Désinformation, biais, responsabilité éditoriale.</p></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Cadre Théorique : Les <span class="title-highlight">Fondations Conceptuelles</span></h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card">
+                            <div class="flex items-center gap-4 mb-4">
+                                
+                                <img src="bourdieu.webp" alt="Portrait de P. Bourdieu" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                
+                                <div>
+                                    <h3 class="title-section">Bourdieu / Cardon</h3>
+                                    <p class="font-semibold text-pink">Champ Journalistique & Machines Inductives</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600">L'IA perturbe le "champ journalistique" en introduisant un nouveau <strong class="font-semibold">capital technologique</strong> qui concurrence le capital symbolique traditionnel (réputation, sources). Les LLM, en tant que "machines inductives", apprennent par reconnaissance de motifs, expliquant leur puissance et leurs "hallucinations".</p>
+                            <blockquote class="text-base">Un article généré par IA peut-il acquérir une légitimité dans ce champ ?</blockquote>
+                        </div>
+                        <div class="card">
+                            <div class="flex items-center gap-4 mb-4">
+
+                                <img src="Veron.jpg" alt="Portrait d'Eliseo Verón" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                
+                                <div>
+                                    <h3 class="title-section">Eliseo Verón</h3>
+                                    <p class="font-semibold text-pink">Contrat de Lecture</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600">Le "contrat de lecture" est le pacte implicite entre un média et son public. L'IA modifie radicalement ce pacte : le lecteur attend non seulement une information, mais une <strong class="font-semibold">garantie sur la manière dont elle a été produite et validée</strong>.</p>
+                             <blockquote class="text-base">L'arrivée de l'IA force une renégociation de ce pacte de confiance.</blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Cadre Théorique : Les <span class="title-highlight">Observateurs du Présent</span></h2>
+                    <p class="max-w-4xl mx-auto text-center text-lg text-gray-700 mb-8">Ce socle théorique a été complété par les analyses d'observatoires et de chercheurs en première ligne sur l'IA et le journalisme.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card">
+                             <h3 class="title-section flex items-center gap-2"><i data-lucide="bar-chart-big" class="text-pink"></i>Observatoires & Think Tanks</h3>
+                             <p class="text-gray-600">Des acteurs comme <strong class="font-semibold">JournalismAI</strong> (dirigé par C. Beckett) ou le <strong class="font-semibold">Reuters Institute</strong> fournissent des données mondiales indispensables.</p>
+                             <div class="bg-white p-4 rounded-lg mt-4 border">
+                                 <p class="text-gray-500">Rapport 2025 :</p>
+                                 <p class="text-2xl font-bold text-dark-blue">87% des rédactions sont déjà transformées par l'IAG.</p>
+                                 <p class="text-gray-600">Ces rapports quantifient l'ampleur du phénomène et soulignent les craintes, comme l'émergence d'« <strong class="font-semibold">AI slop</strong> » (contenu de faible qualité).</p>
+                             </div>
+                        </div>
+                        <div class="card">
+                             <h3 class="title-section flex items-center gap-2"><i data-lucide="user-check" class="text-pink"></i>Chercheurs Spécialisés</h3>
+                            <p class="text-gray-600">Des chercheurs comme <strong class="font-semibold">Nicholas Diakopoulos</strong> sont fondamentaux pour penser les solutions.</p>
+                            <div class="bg-white p-4 rounded-lg mt-4 border">
+                                <p class="text-gray-500">Concept clé :</p>
+                                <p class="text-2xl font-bold text-dark-blue">Responsabilisation Algorithmique</p>
+                                <p class="text-gray-600">Ses travaux explorent les moyens de rendre les systèmes d'IA plus <strong class="font-semibold">transparents et vérifiables</strong>, un enjeu au cœur de mon enquête de terrain.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Méthodologie & <span class="title-highlight">Hypothèses</span></h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card">
+                            <h3 class="title-section flex items-center gap-2"><i data-lucide="combine" class="text-pink"></i>Approche Mixte</h3>
+                            <p class="text-gray-600 mb-4">Pour confronter les pratiques des rédactions à la perception du public, j'ai adopté une méthodologie mixte :</p>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-white rounded-lg border">
+                                    <p class="font-bold text-lg text-dark-blue">Volet Qualitatif</p>
+                                    <p>Entretien semi-directif avec une data-journaliste de Ouest-France pour comprendre les pratiques internes.</p>
+                                </div>
+                                 <div class="p-4 bg-white rounded-lg border">
+                                    <p class="font-bold text-lg text-dark-blue">Volet Quantitatif</p>
+                                    <p>Questionnaire en ligne (N=150) pour mesurer la perception, les attentes et le niveau de confiance du public.</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="card">
+                            <h3 class="title-section flex items-center gap-2"><i data-lucide="lightbulb" class="text-pink"></i>5 Hypothèses à Tester</h3>
+                            <ul class="list-none space-y-3 text-gray-700">
+                                <li class="flex items-start gap-3"><strong class="font-bold text-pink text-lg">H1:</strong><span>L'IA redéfinit les rôles journalistiques vers des tâches de supervision et de vérification.</span></li>
+                                <li class="flex items-start gap-3"><strong class="font-bold text-pink text-lg">H2:</strong><span>Le public a une perception paradoxale : contenus jugés plus clairs, mais moins crédibles.</span></li>
+                                <li class="flex items-start gap-3"><strong class="font-bold text-pink text-lg">H3:</strong><span>L'autorité des médias se déplace de la production vers la validation de l'information.</span></li>
+                                <li class="flex items-start gap-3"><strong class="font-bold text-pink text-lg">H4:</strong><span>La transparence sur l'usage de l'IA est un facteur déterminant de la confiance du public.</span></li>
+                                <li class="flex items-start gap-3"><strong class="font-bold text-pink text-lg">H5:</strong><span>Les journalistes vivent une tension éthique entre gains d'efficacité et risques pour la qualité.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Résultats : Le <span class="title-highlight">Verdict Ambivalent</span> du Public</h2>
+                    <p class="max-w-4xl mx-auto text-center text-lg text-gray-700 mb-8">L'enquête auprès du public révèle une perception profondément ambivalente, validant plusieurs hypothèses.</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="card text-center">
+                            <i data-lucide="scale" class="w-12 h-12 mx-auto mb-4 text-pink"></i>
+                            <h3 class="title-section">Le Paradoxe (H2)</h3>
+                            <p class="text-gray-600">L'IA est perçue comme un avantage sur la <strong class="font-semibold">forme</strong>, mais une menace sur le <strong class="font-semibold">fond</strong>.</p>
+                            <div class="mt-4 space-y-2">
+                                <p class="text-xl font-bold text-green-600">+32,1% <span class="text-base font-normal text-gray-600">pour la clarté</span></p>
+                                <p class="text-xl font-bold text-red-600">-71,4% <span class="text-base font-normal text-gray-600">pour l'originalité</span></p>
+                                <p class="text-xl font-bold text-red-600">-58,3% <span class="text-base font-normal text-gray-600">pour l'exactitude</span></p>
+                            </div>
+                        </div>
+                        <div class="card text-center">
+                            <i data-lucide="lock-keyhole" class="w-12 h-12 mx-auto mb-4 text-pink"></i>
+                            <h3 class="title-section">La Confiance (H4)</h3>
+                            <p class="text-gray-600">La confiance est <strong class="font-semibold">conditionnelle</strong> et repose sur un levier principal : la transparence.</p>
+                             <div class="mt-4 space-y-2">
+                                <p class="text-3xl font-bold text-dark-blue">54,1%</p>
+                                <p class="text-gray-600">ont a priori <strong class="font-semibold">moins confiance</strong> en un média utilisant l'IA.</p>
+                                <p class="text-3xl font-bold text-dark-blue mt-2">95%</p>
+                                <p class="text-gray-600">exigent la <strong class="font-semibold">transparence</strong> sur son usage.</p>
+                            </div>
+                        </div>
+                        <div class="card text-center">
+                            <i data-lucide="pen-tool" class="w-12 h-12 mx-auto mb-4 text-pink"></i>
+                            <h3 class="title-section">L'Authenticité (H3)</h3>
+                            <p class="text-gray-600 mb-4">L'acceptation de l'IA s'effondre à mesure que le contenu requiert du <strong class="font-semibold">jugement humain</strong>.</p>
+                            <div class="space-y-3 text-left">
+                                <p class="font-semibold">Brèves factuelles : <span class="font-bold text-green-600 float-right">86,7%</span></p>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-green-500 h-2.5 rounded-full" style="width: 86.7%"></div></div>
+                                <p class="font-semibold">Reportage d'enquête : <span class="font-bold text-red-600 float-right">16,0%</span></p>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-red-500 h-2.5 rounded-full" style="width: 16%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Résultats : La <span class="title-highlight">Prudence Stratégique</span> de <br> Ouest-France</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <img src="./Ouest-France.png" alt="Logo Ouest-France" class="w-3/4">
+                        </div>
+                        <div class="space-y-4">
+                            <p class="text-lg text-gray-700">L'étude de cas confirme les hypothèses <strong class="font-semibold text-pink">H1</strong> et <strong class="font-semibold text-pink">H5</strong>. Loin d'une adoption euphorique, le journal a mis en place une véritable stratégie de prudence.</p>
+                            <blockquote>"On sent quand un texte est écrit par une IA... Souvent, les propositions sont assez mauvaises et demandent une réécriture."
+                                <cite class="block text-right mt-2 not-italic text-gray-500">— Data-journaliste, Ouest-France</cite>
+                            </blockquote>
+                            <div class="flex flex-wrap gap-4">
+                                <div class="card p-4 flex-grow text-center"><h4 class="title-section">Prudence</h4><p class="text-gray-600">Contenue à des tâches techniques, supervision humaine totale.</p></div>
+                                <div class="card p-4 flex-grow text-center"><h4 class="title-section">Supervision</h4><p class="text-gray-600">Le rôle du journaliste évolue vers la vérification (H1).</p></div>
+                                <div class="card p-4 flex-grow text-center"><h4 class="title-section">Gouvernance</h4><p class="text-gray-600">Charte interne stricte pour protéger données et lecteur (H5).</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Conclusion du Mémoire : <br>Du Contrat de <span class="title-highlight">Lecture</span> au Contrat de <span class="title-highlight">Certification</span></h2>
+                    <p class="max-w-4xl mx-auto text-center text-lg text-gray-700 mb-8">Loin de dévaloriser le journalisme, l'IA agit comme un <strong class="font-semibold">révélateur</strong>. Elle le pousse à se recentrer sur sa valeur unique. L'autorité du média ne repose plus seulement sur sa capacité à produire, mais à <strong class="font-semibold">valider</strong>.</p>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
+                        <div class="card p-6"><i data-lucide="book-open" class="w-12 h-12 mx-auto text-pink mb-2"></i><h3 class="text-xl font-bold text-dark-blue">Contrat de Lecture</h3><p class="text-gray-600">(Passé)</p></div>
+                        <i data-lucide="arrow-right" class="w-12 h-12 text-gray-400 my-4 md:my-0"></i>
+                        <div class="card p-6 bg-dark-blue"><i data-lucide="stamp" class="w-12 h-12 mx-auto text-pink mb-2"></i><h3 class="text-xl font-bold text-dark-blue">Contrat de Certification</h3><p class="text-gray-600">(Futur)</p></div>
+                    </div>
+                    <div class="mt-8">
+                        <h3 class="text-center font-bold text-xl text-dark-blue">Les 3 Piliers du Nouveau Contrat</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                             <div class="text-center p-4"><i data-lucide="eye" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Transparence</h4><p>Informer sur l'usage de l'IA.</p></div>
+                             <div class="text-center p-4"><i data-lucide="user-check" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Supervision Humaine</h4><p>Garantir la validation éditoriale.</p></div>
+                             <div class="text-center p-4"><i data-lucide="school" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Éducation</h4><p>Former les journalistes et le public.</p></div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1" style="background-color: var(--dark-blue);">
+                <div class="slide-content text-center">
+                    <img src="https://e3t8k2jk4u8.exactdn.com/wp-content/uploads/2025/06/MICROPOLE_endossementTALAN_bg_blanc.png?strip=all&lossy=1&ssl=1" alt="Logo Micropole" class="h-32 mx-auto mb-8">
+                    <p class="text-2xl text-gray-300">Partie 2 : Le Stage</p>
+                    <h2 class="text-white title-sub mt-4">Consultant BI Junior <br> chez <span class="title-highlight">Micropole</span></h2>
+                    <div class="flex justify-center gap-8 text-white mt-4">
+                        <span class="font-semibold">Agence d'Aix-en-Provence</span>
+                        <span>|</span>
+                        <span class="font-semibold">Client : Région Île-de-France</span>
+                    </div>
+                     <p class="text-lg text-gray-300 mt-8 max-w-3xl mx-auto">Accompagner un client majeur sur l'ensemble du cycle de vie de ses projets décisionnels, de l'extraction des données jusqu'à leur visualisation.</p>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                    <h2 class="title-sub">Missions et <span class="title-highlight">Projets Clés</span></h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="card">
+                            <i data-lucide="layout-dashboard" class="w-10 h-10 mb-3 text-pink"></i>
+                            <h4 class="title-section">Dashboarding Power BI</h4>
+                            <p class="text-gray-600">Création de bout-en-bout d'une application de suivi des bourses Sanitaire et Social : du recueil du besoin au développement final.</p>
+                            
+                            <img src="./fig3.png" alt="Capture d'écran du dashboard Power BI" class="w-full h-64 bg-gray-200 mt-4 rounded-lg object-cover">
+
+                        </div>
+                        <div class="card">
+                            <i data-lucide="database-zap" class="w-10 h-10 mb-3 text-pink"></i>
+                            <h4 class="title-section">Flux ETL & Modélisation</h4>
+                            <p class="text-gray-600">Refonte de l'application sur l'insertion professionnelle : reprise complète des flux de traitement avec <strong class="font-semibold">Oracle Data Integrator (ODI)</strong> et optimisation du modèle de données.</p>
+                            
+                            <img src="./fig7.png" alt="Schéma du flux ETL sur Oracle Data Integrator" class="w-full h-32 bg-gray-200 mt-4 rounded-lg object-cover">
+                            
+                        </div>
+
+                        <div class="card">
+                            <i data-lucide="brain-circuit" class="w-10 h-10 mb-3 text-pink"></i>
+                            <h4 class="title-section">Proof of Concept (POC) IA</h4>
+                            <p class="text-gray-600">Développement d'un POC utilisant des <strong class="font-semibold">LLM</strong> pour générer automatiquement de la documentation technique afin de simplifier la compréhension de schémas de données complexes.</p>
+                            
+                            <img src="./POC.jpeg" alt="Concept visuel d'une IA transformant des données complexes en documentation simple" class="w-full h-32 bg-gray-200 mt-4 rounded-lg object-cover">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content">
+                     <h2 class="title-sub">Apports et <span class="title-highlight">Compétences du Stage</span></h2>
+                     <p class="max-w-4xl mx-auto text-center text-lg text-gray-700 mb-8">Ce stage a été extrêmement formateur en me permettant de confronter la théorie à la pratique : un modèle de données parfait sur le papier doit avant tout répondre à une contrainte métier et de performance.</p>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div class="card">
+                             <h3 class="title-section flex items-center gap-2"><i data-lucide="server" class="text-pink"></i>Compétences Techniques</h3>
+                             <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                 <li>Maîtrise de <strong class="font-semibold">Power BI</strong> et du langage <strong class="font-semibold">DAX</strong>.</li>
+                                 <li>Développement de flux ETL avec <strong class="font-semibold">Oracle Data Integrator (ODI)</strong>.</li>
+                                 <li>Optimisation de requêtes <strong class="font-semibold">SQL</strong> sur des bases Oracle.</li>
+                                 <li>Conception de modèles de données en étoile.</li>
+                             </ul>
+                         </div>
+                          <div class="card">
+                             <h3 class="title-section flex items-center gap-2"><i data-lucide="users-round" class="text-pink"></i>Compétences Méthodologiques</h3>
+                              <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                 <li>Gestion de projet de A à Z (recueil de besoin, spécifications, développement, recette).</li>
+                                 <li>Interaction et communication avec le client.</li>
+                                 <li>Participation à la dimension commerciale.</li>
+                                 <li>Chiffrage des charges de développement et aide à la rédaction de devis.</li>
+                             </ul>
+                             
+                             <img src="./fig11.png" alt="Exemple de maquette de devis" class="w-full h-64 bg-gray-200 mt-4 rounded-lg object-cover">
+ 
+                         </div>
+                     </div>
+                    </div>
+             </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1">
+                <div class="slide-content text-center">
+                    <h2 class="title-sub">Conclusion : La <span class="title-highlight">Chaîne de la Confiance</span></h2>
+                    <p class="max-w-4xl mx-auto text-center text-lg text-gray-700 mb-8">Ces deux expériences, recherche académique et stage en entreprise, convergent vers une même idée centrale : la confiance ne se décrète pas, elle se construit.</p>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
+                        <div class="card p-4 flex-grow w-full md:w-auto"><i data-lucide="database" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Data Fiable</h4></div>
+                        <i data-lucide="link-2" class="w-10 h-10 text-gray-400 rotate-90 md:rotate-0"></i>
+                        <div class="card p-4 flex-grow w-full md:w-auto"><i data-lucide="eye" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Processus Transparent & Validé</h4></div>
+                        <i data-lucide="link-2" class="w-10 h-10 text-gray-400 rotate-90 md:rotate-0"></i>
+                         <div class="card p-4 flex-grow w-full md:w-auto"><i data-lucide="shield-check" class="w-10 h-10 mx-auto text-pink mb-2"></i><h4 class="font-bold text-lg">Produit de Confiance</h4><p class="text-sm text-gray-500">(Article / Dashboard)</p></div>
+                    </div>
+                     <p class="text-lg text-gray-800 mt-10 max-w-4xl mx-auto">
+                        Que l'on soit un lecteur face à un article ou un décideur face à un tableau de bord, l'exigence est la même. Mon projet professionnel est de continuer à évoluer à cette intersection, en construisant des solutions data qui soient non seulement performantes, mais aussi et surtout, <strong class="font-semibold text-dark-blue">dignes de confiance</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="slide" role="group" aria-roledescription="slide" tabindex="-1" style="background-color: var(--dark-blue);">
+                <div class="slide-content text-center flex flex-col justify-center items-center">
+                    <h1 class="title-main text-white">Merci de votre attention.</h1>
+                    <p class="text-4xl text-gray-300 mt-6 mb-12">Des questions ?</p>
+                    <div class="text-white">
+                        <p class="text-2xl font-bold">Joris Salmon</p>
+                        <a href="mailto:jsalmon@micropole.com" class="text-lg text-gray-300 hover:text-pink transition">jsalmon@micropole.com</a><br>
+                        <a href="https://jorissalmon.com" target="_blank" class="text-lg text-gray-300 hover:text-pink transition">jorissalmon.com</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="slide-footer-wrapper">
+            <nav class="nav-controls" aria-label="Navigation des diapositives">
+                <button id="prev-btn" class="nav-button" aria-label="Diapositive précédente"><i data-lucide="arrow-left"></i></button>
+                <div class="flex items-center gap-3">
+                    <span id="slide-counter-current" class="slide-counter" aria-hidden="true">1</span>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <span aria-hidden="true">/</span>
+                    <span id="slide-counter-total" class="text-gray-500" aria-hidden="true">13</span>
+                </div>
+                <button id="next-btn" class="nav-button" aria-label="Diapositive suivante"><i data-lucide="arrow-right"></i></button>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const currentCounter = document.getElementById('slide-counter-current');
+            const totalCounter = document.getElementById('slide-counter-total');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if (!prevBtn || !nextBtn || !slides.length) {
+                console.error("Éléments de présentation manquants.");
+                return;
+            }
+
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function updatePresentation() {
+                slides.forEach((slide, index) => {
+                    slide.setAttribute('aria-label', `Diapositive ${index + 1} sur ${totalSlides}`);
+                    if (index === currentSlide) {
+                        slide.classList.add('active');
+                        slide.setAttribute('aria-hidden', 'false');
+                        slide.focus({ preventScroll: true });
+                    } else {
+                        slide.classList.remove('active');
+                        slide.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                
+                if (currentCounter) currentCounter.textContent = currentSlide + 1;
+                if (progressBar) {
+                    const progressPercentage = (currentSlide / (totalSlides - 1)) * 100;
+                    progressBar.style.width = `${progressPercentage}%`;
+                }
+
+                prevBtn.disabled = currentSlide === 0;
+                prevBtn.setAttribute('aria-disabled', String(currentSlide === 0));
+                nextBtn.disabled = currentSlide === totalSlides - 1;
+                nextBtn.setAttribute('aria-disabled', String(currentSlide === totalSlides - 1));
+                
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+
+            function goToNextSlide() {
+                if (currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updatePresentation();
+                }
+            }
+
+            function goToPrevSlide() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updatePresentation();
+                }
+            }
+
+            nextBtn.addEventListener('click', goToNextSlide);
+            prevBtn.addEventListener('click', goToPrevSlide);
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+                    e.preventDefault();
+                    goToNextSlide();
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    e.preventDefault();
+                    goToPrevSlide();
+                }
+            });
+
+            if (totalCounter) totalCounter.textContent = totalSlides;
+            updatePresentation();
+        });
+    </script>
+</body>
+</html> 
